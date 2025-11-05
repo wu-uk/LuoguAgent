@@ -1,7 +1,6 @@
 from pydantic import BaseModel, Field
 import json, asyncio, os
 from crawl4ai import *
-import json
 from typing import List
 from constant import DMX_API_KEY
 
@@ -15,26 +14,20 @@ class ProblemDetails(BaseModel):
 
 strategy = LLMExtractionStrategy(
     llm_config=LLMConfig(
-        provider="openai/gpt-4o", 
+        provider="deepseek/deepseek-chat", 
         api_token=DMX_API_KEY,
         base_url="https://www.dmxapi.cn/v1"
     ),
-
     schema=ProblemDetails.model_json_schema(),
-    
-    extraction_type="schema", #
-    
+    extraction_type="schema",
     instruction="你是一个爬虫助手，请从给定的网页 Markdown 中提取算法题目的关键信息。", #
-    
     apply_chunking=False,
-    
-    input_format="markdown", #
-    
+    input_format="markdown", # 这里可能需要html, 目前先暂时这样
     extra_args={"temperature": 0.1, "max_tokens": 2000} 
 )
 
 
-test_url = "https://www.luogu.com.cn/problem/P1268"
+test_url = "https://www.luogu.com.cn/article/syub6c8r"
 
 async def main():
     brouser_config = BrowserConfig(headless=True, proxy=None)
@@ -50,7 +43,6 @@ async def main():
         result = await crawler.arun(test_url, config=config)
         if result.success and result.extracted_content:
             try:
-                # 官方示例说，成功后，extracted_content 就是 JSON
                 data = json.loads(result.extracted_content)
                 print("--- 提取成功 ---")
                 print(json.dumps(data, indent=2, ensure_ascii=False))
