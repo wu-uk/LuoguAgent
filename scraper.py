@@ -27,7 +27,7 @@ strategy = LLMExtractionStrategy(
 )
 
 
-test_url = "https://www.luogu.com.cn/article/syub6c8r"
+test_url = "https://www.luogu.com.cn/problem/P4137"
 
 async def main():
     brouser_config = BrowserConfig(headless=True, proxy=None)
