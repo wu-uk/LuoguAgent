@@ -20,7 +20,6 @@ def install_playwright():
     一个只运行一次的函数，用于在 Streamlit Cloud 启动时
     安装 Playwright 所需的浏览器。
     """
-    st.write("正在检查和安装 Playwright 浏览器，请稍候...")
     print("--- [Playwright] 正在安装浏览器... ---")
     
     # 我们调用 "python -m playwright install chromium"
@@ -37,7 +36,6 @@ def install_playwright():
             check=True  # 如果命令失败，则抛出异常
         )
         print(f"--- [Playwright] 安装成功: {result.stdout} ---")
-        st.write("浏览器安装成功。")
     except subprocess.CalledProcessError as e:
         # 如果安装失败，显示错误并停止应用
         print(f"--- [Playwright] 安装失败: {e.stderr} ---")
@@ -189,7 +187,7 @@ if st.button("🚀 开始分析"):
             delta = chunk.choices[0].delta
             if hasattr(delta, 'content') and delta.content:
                 full_content += delta.content
-                stream_display += delta.content
+                stream_display += delta.content.replace("\\n", "\n")
                 # 用 .code() 来显示原始的、正在生成的 JSON 字符串
                 placeholder.code(stream_display + "▌", language="json")
         
