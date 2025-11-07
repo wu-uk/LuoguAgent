@@ -1,0 +1,42 @@
+{
+  "problem": {
+    "title": "P1239 计数器",
+    "background": "无",
+    "description": "一本书的页数为 n，页码从 1 开始编起，请你求出全部页码中，用了多少个 0,1,2⋯9。每个页码不含前导 0，如 n=1234 时第 5 页不是 0005，只是 5。",
+    "input_format": "一个正整数 n，表示总的页码。",
+    "output_format": "输出共十行，其中第 k 行为数字 k−1 的个数。",
+    "examples": [
+      {
+        "input": "11",
+        "output": "1\n4\n1\n1\n1\n1\n1\n1\n1\n1"
+      }
+    ],
+    "notes": "对于 100% 数据，满足 1≤n≤10^9。\n\n2022.7.4：新添加三组 Hack 数据。"
+  },
+  "solutions": [
+    {
+      "solution_text": "在统计m位数时，0多算了(11……1)这样一个全是1的m位数。\n\n基本算法描述如下：\n输入n；\n计算n的位数Len；\n将n每一位上的数字存放到数组c里；\n计算10的0次方到len-1次方并存放到数组b里；\ni控制位数，for i:=len downto 1 do\nbegin\n0到9的使用次数增加平均使用的次数b[i-1]*(i-1)*c[i]；\n0到c[i-1]的使用次数增加作为当前位使用的次数b[i-1]；\nc[i]的使用次数增加n mod b[i-1]\nend\n最后减去多计算的0的个数；\n输出结果。",
+      "author": "吴国铨",
+      "code": "program P1239;\nvar i,n,m,x,y,r,ans:longint;\n    a:array[0..9] of longint;\nbegin\n  readln(n);\n  fillchar(a,sizeof(a),0);\n  m:=n;\n  ans:=1;\n  r:=0;\n  while m<>0 do\n  begin\n    x:=n div ans mod 10;\n    y:=n mod ans;\n    for i:=0 to 9 do\n      a[i]:=a[i]+r*x*ans div 10;\n    for i:=0 to x-1 do\n      a[i]:=a[i]+ans;\n    a[x]:=a[x]+y+1;\n    a[0]:=a[0]-ans;\n    ans:=ans*10;\n    inc(r);\n    m:=m div 10;\n  end;\n  for i:=0 to 9 do\n    writeln(a[i]);\nend.",
+      "code_language": "Pascal",
+      "title": "题解 P1239 【计数器】",
+      "url": "/article/yh3ib59f"
+    },
+    {
+      "solution_text": "看到这题，很多人会尝试枚举，例如下面的程序：然而本蒟蒻信誓旦旦的向你保证，这样会超时。因为这题的数据范围是10^9。好吧这题事实上应该这么做：（思路出自吴国铨）",
+      "author": "孤单光量子",
+      "code": "var i,n,m,x,y,r,ans:longint;\n a:array[0..9] of longint;\n begin\n readln(n);m:=n;ans:=1;r:=0;\n while m<>0 do\n begin\n x:=n div ans mod 10;\n y:=n mod ans;\n for i:=0 to 9 do a[i]:=a[i]+r*x*ans div 10;\n for i:=0 to x-1 do a[i]:=a[i]+ans;\n a[x]:=a[x]+y+1;\n a[0]:=a[0]-ans;\n ans:=ans*10;\n inc(r);\n m:=m div 10;\n end;\n for i:=0 to 9 do writeln(a[i]);\n end.",
+      "code_language": "Pascal",
+      "title": "题解 P1239 【计数器】",
+      "url": "/article/al08cw4r"
+    },
+    {
+      "solution_text": "对于N位数X，可以将它拆分为X=A[1]*10^N+A[2]*10^(N-1)+...+A[N]*10^(N-N)的形式。\n\n对于A[i] (1<=i<=N)，\n\n一、如果它不为0,那么它：\n1. 首先会分别增加A[i]*(N-i)*10^(N-i-1)个0...9；\n2. 其次会增加10^(N-i)个1..A[i]-1；\n3. 然后会增加A[i]*10^(N-i+1)个A[1]...A[i-1]；\n4. 最后会增加一个A[i]。\n\n二、如果它为0，则应减去被多计算的10^(N-i-1)-1个0。\n\n#### 以上仅为大意，不保证没有错误，具体请见代码：",
+      "author": "青春ing",
+      "code": "#include <cstring>\n#include <cstdio>\nusing namespace std;\n\nconstexpr int base[11] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};//事先计算好的10^i\nconstexpr int dif[11] = {0, 1, 20, 300, 4000, 50000, 600000, 7000000, 80000000, 900000000};//事先计算好的i*10^(i-1)\n\nint ans[11];//用于存储答案\n\nint main()\n{\n    char num[11];//读入的数字，用字符串会更方便接下来的处理。当然，用int也没问题\n    scanf(\"%s\", num);\n    int len = strlen(num) - 1;//求数字的位数\n    int plus = 0;//plus即前述A[i]不为0将要增加的A[1]...A[i-1]的个数。程序倒序处理，所以plus需要累计\n    for (int i = len; i >= 0; --i)//N-1>=i>=0，与之前描述有差别\n    {\n        int dig = num[i] - '0';//即前述A[i]\n        ans[dig] += plus + 1;//前述A[i]不为0时要处理的3和4。程序倒序处理，与描述有差别\n        plus += dig * base[len - i];//累计plus\n        if (dig == 0)\n        {\n            ans[0] -= base[len - i];//A[i]为0时减去10^(N-i)个0（因第19行将ans[0]加了1,所以这里要多减1个0）\n        }\n        for (int j = 0; j < 10; ++j)\n        {\n            ans[j] += dig * dif[len - i];//前述A[i]不为0时要处理的1\n        }\n        for (int j = 1; j < dig; ++j)\n        {\n            ans[j] += base[len - i];//前述A[i]不为0时要处理的2\n        }\n    }\n    for (int i = 0; i < 10; ++i)\n    {\n        printf(\"%d\\n\", ans[i]);//输出答案\n    }\n    return 0;\n}",
+      "code_language": "C++",
+      "title": "题解 P1239 【计数器】",
+      "url": "/article/o2vzi70s"
+    }
+  ]
+}

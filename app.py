@@ -1,5 +1,5 @@
 import streamlit as st
-import asyncio, sys
+import asyncio, sys, subprocess
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 import traceback
@@ -12,6 +12,42 @@ from analysis_agent import AnalysisAgent
 from crawler_agent import LuoguCrawlerAgent
 from crawl4ai import AsyncWebCrawler, BrowserConfig
 from constant import *
+
+
+@st.cache_resource
+def install_playwright():
+    """
+    一个只运行一次的函数，用于在 Streamlit Cloud 启动时
+    安装 Playwright 所需的浏览器。
+    """
+    st.write("正在检查和安装 Playwright 浏览器，请稍候...")
+    print("--- [Playwright] 正在安装浏览器... ---")
+    
+    # 我们调用 "python -m playwright install chromium"
+    # "sys.executable" 确保我们用的是当前环境的 python
+    command = [sys.executable, "-m", "playwright", "install", "chromium"]
+    
+    try:
+        # 运行命令
+        result = subprocess.run(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=True  # 如果命令失败，则抛出异常
+        )
+        print(f"--- [Playwright] 安装成功: {result.stdout} ---")
+        st.write("浏览器安装成功。")
+    except subprocess.CalledProcessError as e:
+        # 如果安装失败，显示错误并停止应用
+        print(f"--- [Playwright] 安装失败: {e.stderr} ---")
+        st.error(f"Playwright 浏览器安装失败: {e.stderr}")
+        st.stop()
+    except FileNotFoundError:
+        st.error("无法执行 Playwright 命令。请确保 'playwright' 在 requirements.txt 中。")
+        st.stop()
+
+install_playwright()
 
 # -----------------------------------------------------------------
 # [1] 侧边栏：获取密钥
