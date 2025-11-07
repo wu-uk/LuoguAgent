@@ -1,13 +1,13 @@
 import requests
-from bs4 import BeautifulSoup
 import re
 import json
 import asyncio
 import os
 from pydantic import BaseModel, Field
+from bs4 import BeautifulSoup
 from typing import List, Optional 
 from crawl4ai import *
-from constant import DMX_API_KEY 
+from luogu_agent.core.constant import DMX_API_KEY 
 
 # --- 第 1 阶段：搜索 (requests + bs4) ---
 async def search_for_solution_urls(problem_id: str) -> List[dict]:

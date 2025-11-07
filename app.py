@@ -4,14 +4,11 @@ if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 import traceback
 
-# --- 关键导入 ---
-# 1. 导入你的 Agent
-from analysis_agent import AnalysisAgent
-
-# 2. 导入爬虫依赖（因为爬虫是第一步）
-from crawler_agent import LuoguCrawlerAgent
 from crawl4ai import AsyncWebCrawler, BrowserConfig
-from constant import *
+
+from luogu_agent.crawler import LuoguCrawlerAgent
+from luogu_agent.analysist import AnalysisAgent
+from luogu_agent.core.constant import *
 
 
 @st.cache_resource
@@ -139,7 +136,7 @@ if st.button("🚀 开始分析"):
             async def crawl_main():
                 async with AsyncWebCrawler(config=brouser_config) as crawler:
                     agent = LuoguCrawlerAgent(api_key_input, base_url_input, crawler, cache_dir=CACHE_DIR)
-                    st.write(f"正在抓取 {problemid}...")
+                    st.write(f"正在抓取 {problemid}...(第一次抓取可能需要较长的时间⏳)")
                     data = await agent.run(problemid, max_solutions=3)
                     st.write("✅ 抓取完成")
                     return data
@@ -187,7 +184,6 @@ if st.button("🚀 开始分析"):
             if hasattr(delta, 'content') and delta.content:
                 full_content += delta.content
                 stream_display += delta.content
-                # 用 .code() 来显示原始的、正在生成的 JSON 字符串
                 placeholder.write(stream_display + "▌")
         
         # 流式结束，显示完整 JSON
@@ -212,7 +208,6 @@ if st.button("🚀 开始分析"):
             # [!] 关键：用 Markdown 覆盖掉 placeholder 里的 code
             placeholder.markdown(final_md)
             
-            # (可选) 既然 Agent 有保存功能，我们也帮它调用一下
             try:
                 analysis_agent._save_json_result(problemid, parsed_data)
                 analysis_agent._save_markdown_result(problemid, parsed_data)

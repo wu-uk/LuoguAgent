@@ -1,8 +1,8 @@
 from pydantic import BaseModel, Field
 import json, asyncio, os
-from crawl4ai import *
 from typing import List
-from constant import DMX_API_KEY
+from crawl4ai import *
+from luogu_agent.core.constant import DMX_API_KEY
 
 class ProblemDetails(BaseModel):
     background: str = Field(..., description="提取题目背景，如果没有则返回 '无'")

@@ -1,6 +1,6 @@
 from crawl4ai import LLMExtractionStrategy, LLMConfig
-from constant import DMX_API_KEY
-from schema import ProblemDetails, SolutionDetails
+from luogu_agent.core.constant import DMX_API_KEY
+from luogu_agent.core.schema import ProblemDetails, SolutionDetails
 
 def create_problem_strategy(api_key: str, base_url: str):
     problem_strategy = LLMExtractionStrategy(

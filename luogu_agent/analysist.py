@@ -1,18 +1,15 @@
-import os, re
-import json
-import asyncio
-import traceback
-import ast
+import os, re, json, asyncio, traceback, ast
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Tuple, Optional
 
-from constant import *
-from prompts import get_system_prompt, get_user_prompt
-from schema import ProblemAnalysis
-
-from crawler_agent import LuoguCrawlerAgent
 from crawl4ai import AsyncWebCrawler, BrowserConfig
 from zai import ZhipuAiClient
+
+from luogu_agent.crawler import LuoguCrawlerAgent
+from luogu_agent.core.constant import *
+from luogu_agent.core.prompts import get_system_prompt, get_user_prompt
+from luogu_agent.core.schema import ProblemAnalysis
+
 
 class AnalysisAgent:
     """

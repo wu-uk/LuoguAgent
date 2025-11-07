@@ -1,10 +1,8 @@
-import json
-import os
-import re
-import requests
-import asyncio, aiofiles  # 用于异步文件 IO
-from bs4 import BeautifulSoup
+import json, os, re, requests
+import asyncio, aiofiles
 from typing import List, Dict, Any, Optional
+
+from bs4 import BeautifulSoup
 from crawl4ai import (
     AsyncWebCrawler,
     BrowserConfig,
@@ -12,9 +10,9 @@ from crawl4ai import (
     CacheMode,
 )
 
-from constant import *
-from schema import ProblemDetails, SolutionDetails
-from strategy import create_problem_strategy, create_solution_strategy
+from luogu_agent.core.constant import *
+from luogu_agent.core.schema import ProblemDetails, SolutionDetails
+from luogu_agent.core.strategy import create_problem_strategy, create_solution_strategy
 
 class LuoguCrawlerAgent:
     """
@@ -256,13 +254,13 @@ class LuoguCrawlerAgent:
             return {"error": f"Pydantic 验证失败: {e}", "raw": result.extracted_content}
 
 async def main():
-    TEST_PROBLEM_ID = "P2167"
+    TEST_PROBLEM_ID = "P1238"
     
     brouser_config = BrowserConfig(headless=True, proxy=None)
     
     async with AsyncWebCrawler(config=brouser_config) as crawler:
         
-        agent = LuoguCrawlerAgent(crawler, cache_dir=CACHE_DIR)
+        agent = LuoguCrawlerAgent(DMX_API_KEY, DMX_BASE_URL, crawler, cache_dir=CACHE_DIR)
         
         final_data = await agent.run(TEST_PROBLEM_ID, max_solutions=1)
         

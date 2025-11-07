@@ -1,7 +1,7 @@
 import os
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
-from constant import DMX_API_KEY, ZHIPU_API_KEY, DMX_BASE_URL, ZHIPU_BASE_URL
+from luogu_agent.core.constant import DMX_API_KEY, ZHIPU_API_KEY, DMX_BASE_URL, ZHIPU_BASE_URL
 
 API_KEY = DMX_API_KEY
 BASE_URL = DMX_BASE_URL
