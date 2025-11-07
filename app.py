@@ -181,15 +181,14 @@ if st.button("🚀 开始分析"):
         full_content = ""
         stream_display = "" # 这是流式展示给用户的
         
-        # [!] 核心：实时更新占位符，显示原始输出
         for chunk in stream:
             if not chunk.choices: continue
             delta = chunk.choices[0].delta
             if hasattr(delta, 'content') and delta.content:
                 full_content += delta.content
-                stream_display += delta.content.replace("\\n", "\n")
+                stream_display += delta.content
                 # 用 .code() 来显示原始的、正在生成的 JSON 字符串
-                placeholder.code(stream_display + "▌", language="json")
+                placeholder.write(stream_display + "▌")
         
         # 流式结束，显示完整 JSON
         placeholder.code(full_content, language="json")
