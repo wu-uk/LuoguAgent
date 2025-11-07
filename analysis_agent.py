@@ -20,8 +20,12 @@ class AnalysisAgent:
     会同时保存 .json (机器可读) 和 .md (人类可读) 两种格式。
     """
     
-    def __init__(self):
-        self.llm = ZhipuAiClient(api_key=DMX_API_KEY, base_url=DMX_BASE_URL)
+    def __init__(self, api_key: str, base_url: str):
+        try:
+            self.llm = ZhipuAiClient(api_key=api_key, base_url=base_url)
+        except Exception as e:
+            print(f"ZhipuAiClient 初始化失败: {e}")
+            raise ValueError(f"ZhipuAiClient 初始化失败。请检查 API Key 和 Base URL。{e}")
         self.schema = ProblemAnalysis  
         self.analysis_cache_dir = ANALYSIS_CACHE_DIR
         os.makedirs(self.analysis_cache_dir, exist_ok=True)

@@ -14,16 +14,18 @@ from crawl4ai import (
 
 from constant import *
 from schema import ProblemDetails, SolutionDetails
-from strategy import PROBLEM_STRATEGY, SOLUTION_STRATEGY
+from strategy import create_problem_strategy, create_solution_strategy
 
 class LuoguCrawlerAgent:
     """
     负责洛谷题目和题解的爬取、提取和缓存。
     """
 
-    def __init__(self, crawler: AsyncWebCrawler, cache_dir: str = CACHE_DIR):
+    def __init__(self, api_key: str, base_url: str, crawler: AsyncWebCrawler, cache_dir: str = CACHE_DIR):
         self.crawler = crawler
         self.cache_dir = cache_dir
+        self.problem_strategy = create_problem_strategy(api_key, base_url)
+        self.solution_strategy = create_solution_strategy(api_key, base_url)
         os.makedirs(self.cache_dir, exist_ok=True)
         print(f"[CrawlerAgent] 初始化完成，缓存目录: {self.cache_dir}")
 
@@ -149,7 +151,7 @@ class LuoguCrawlerAgent:
         
         config = CrawlerRunConfig(
             cache_mode=CacheMode.ENABLED, # 题目页可以缓存
-            extraction_strategy=PROBLEM_STRATEGY,
+            extraction_strategy=self.problem_strategy,
             delay_before_return_html=1
         )
         result = await self.crawler.arun(url, config=config)
@@ -223,7 +225,7 @@ class LuoguCrawlerAgent:
         
         config = CrawlerRunConfig(
             cache_mode=CacheMode.BYPASS, # 题解页不应缓存
-            extraction_strategy=SOLUTION_STRATEGY,
+            extraction_strategy=self.solution_strategy,
             delay_before_return_html=1
         )
         result = await self.crawler.arun(full_url, config=config)
@@ -254,7 +256,7 @@ class LuoguCrawlerAgent:
             return {"error": f"Pydantic 验证失败: {e}", "raw": result.extracted_content}
 
 async def main():
-    TEST_PROBLEM_ID = "P4137"
+    TEST_PROBLEM_ID = "P2167"
     
     brouser_config = BrowserConfig(headless=True, proxy=None)
     

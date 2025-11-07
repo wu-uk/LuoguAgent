@@ -12,7 +12,25 @@ from analysis_agent import AnalysisAgent
 from crawler_agent import LuoguCrawlerAgent
 from crawl4ai import AsyncWebCrawler, BrowserConfig
 from constant import *
-# (如果你的 ZHIPU 密钥在 analysis_agent 里是硬编码的，这里就不需要导入)
+
+# -----------------------------------------------------------------
+# [1] 侧边栏：获取密钥
+# -----------------------------------------------------------------
+st.sidebar.title("🔑 配置 API")
+st.sidebar.markdown("密钥不会被存储，仅用于当前会话。")
+
+# 使用 type="password" 来隐藏密钥
+api_key_input = st.sidebar.text_input(
+    "API Key", 
+    type="password",
+    help="输入你的 API Key (例如 sk-...)"
+)
+
+base_url_input = st.sidebar.text_input(
+    "Base URL", 
+    value="https://www.dmxapi.cn/v1", # 给个默认值
+    help="输入你的 API Base URL"
+)
 
 # -----------------------------------------------------------------
 # 辅助函数：从解析后的字典构建 Markdown
@@ -48,22 +66,26 @@ def build_markdown_from_data(problem_id: str, data: dict) -> str:
 
 st.title("🦜🔗 Luogu Agent")
 
-# # 使用 @st.cache_resource 来缓存 Agent 实例，避免每次重跑都初始化
-# @st.cache_resource
-# def get_analysis_agent():
-#     print("--- [Streamlit] 正在初始化 AnalysisAgent... ---")
-#     # 确保 AnalysisAgent 的 __init__ 不需要额外参数
-#     # 或者如果需要，从你的 constant.py 导入
-#     return AnalysisAgent()
+@st.cache_resource
+def get_analysis_agent(api_key, base_url):
+    print(f"--- [Streamlit] 正在尝试初始化 AnalysisAgent... ---")
+    # [!] 把参数传递给修改后的 __init__
+    return AnalysisAgent(api_key, base_url)
 
-try:
-    analysis_agent = AnalysisAgent()
-except Exception as e:
-    st.error(f"初始化 AnalysisAgent 失败: {e}\n\n请检查 `constant.py` 和 API 密钥。")
-    st.stop()
+analysis_agent = None
+if api_key_input and base_url_input:
+    try:
+        analysis_agent = get_analysis_agent(api_key_input, base_url_input)
+    except Exception as e:
+        st.error(f"🚫 Agent 初始化失败: {e}")
+        st.warning("请检查侧边栏的 API Key 和 Base URL 是否正确。")
+        st.stop()
+else:
+    st.info("👈 请在左侧边栏输入 Zhipu API Key 和 Base URL 来启动应用。")
+    st.stop() # 如果没提供密钥，就停在这里，不显示后续界面
 
 # --- 界面 ---
-problemid = st.text_input("输入洛谷题目 ID (例如: P1117)", "P1117")
+problemid = st.text_input("输入洛谷题目 ID (例如: P1238)", "P1238")
 
 if st.button("🚀 开始分析"):
     if not problemid:
@@ -82,7 +104,7 @@ if st.button("🚀 开始分析"):
             
             async def crawl_main():
                 async with AsyncWebCrawler(config=brouser_config) as crawler:
-                    agent = LuoguCrawlerAgent(crawler, cache_dir=CACHE_DIR)
+                    agent = LuoguCrawlerAgent(api_key_input, base_url_input, crawler, cache_dir=CACHE_DIR)
                     st.write(f"正在抓取 {problemid}...")
                     data = await agent.run(problemid, max_solutions=3)
                     st.write("✅ 抓取完成")
