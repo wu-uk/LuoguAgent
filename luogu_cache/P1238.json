@@ -1,0 +1,42 @@
+{
+  "problem": {
+    "title": "P1238 走迷宫",
+    "background": "无",
+    "description": "有一个 m×n 格的迷宫(表示有 m 行、n 列)，其中有可走的也有不可走的，如果用 1 表示可以走，0 表示不可以走，文件读入这 m×n 个数据和起始点、结束点（起始点和结束点都是用两个数据来描述的，分别表示这个点的行号和列号）。现在要你编程找出所有可行的道路，要求所走的路中没有重复的点，走时只能是上下左右四个方向。如果一条路都不可行，则输出相应信息（用 −1 表示无路）。优先顺序：左上右下。数据保证随机生成。",
+    "input_format": "第一行是两个数 m,n(1<m,n<15)，接下来是 m 行 n 列由 1 和 0 组成的数据，最后两行是起始点和结束点。",
+    "output_format": "所有可行的路径，描述一个点时用 (x,y) 的形式，除开始点外，其他的都要用 `->` 表示方向。如果没有一条可行的路则输出 −1。",
+    "examples": [
+      {
+        "input": "5 6\n1 0 0 1 0 1\n1 1 1 1 1 1\n0 0 1 1 1 0\n1 1 1 1 1 0\n1 1 1 0 1 1\n1 1\n5 6",
+        "output": "(1,1)->(2,1)->(2,2)->(2,3)->(2,4)->(2,5)->(3,5)->(3,4)->(3,3)->(4,3)->(4,4)->(4,5)->(5,5)->(5,6)\n(1,1)->(2,1)->(2,2)->(2,3)->(2,4)->(2,5)->(3,5)->(3,4)->(4,4)->(4,5)->(5,5)->(5,6)\n(1,1)->(2,1)->(2,2)->(2,3)->(2,4)->(2,5)->(3,5)->(4,5)->(5,5)->(5,6)\n(1,1)->(2,1)->(2,2)->(2,3)->(2,4)->(3,4)->(3,3)->(4,3)->(4,4)->(4,5)->(5,5)->(5,6)\n(1,1)->(2,1)->(2,2)->(2,3)->(2,4)->(3,4)->(3,5)->(4,5)->(5,5)->(5,6)\n(1,1)->(2,1)->(2,2)->(2,3)->(2,4)->(3,4)->(4,4)->(4,5)->(5,5)->(5,6)\n(1,1)->(2,1)->(2,2)->(2,3)->(3,3)->(3,4)->(2,4)->(2,5)->(3,5)->(4,5)->(5,5)->(5,6)\n(1,1)->(2,1)->(2,2)->(2,3)->(3,3)->(3,4)->(3,5)->(4,5)->(5,5)->(5,6)\n(1,1)->(2,1)->(2,2)->(2,3)->(3,3)->(3,4)->(4,4)->(4,5)->(5,5)->(5,6)\n(1,1)->(2,1)->(2,2)->(2,3)->(3,3)->(4,3)->(4,4)->(3,4)->(2,4)->(2,5)->(3,5)->(4,5)->(5,5)->(5,6)\n(1,1)->(2,1)->(2,2)->(2,3)->(3,3)->(4,3)->(4,4)->(3,4)->(3,5)->(4,5)->(5,5)->(5,6)\n(1,1)->(2,1)->(2,2)->(2,3)->(3,3)->(4,3)->(4,4)->(4,5)->(5,5)->(5,6)"
+      }
+    ],
+    "notes": "数据保证随机生成。事实上，如果 n=m=14 且每个位置都是 1 的话，有 69450664761521361664274701548907358996488 种路径。"
+  },
+  "solutions": [
+    {
+      "solution_text": "这一题不用说，是每一个搜索初学者都要做的，那么，我们要做的就是进一步的优化。首先，以上程序我就不做过多的文字解释了，反正大家都懂。那么我再解释一下'qiang'那个过程，这是一步优化，他将现有地图的四周都铺成了一道墙，那么在回溯搜索的是后，使判断更容易也使程序更快了。那么就这些了，还请大家自己好好参悟理解。",
+      "author": "野菜汤",
+      "code": "const a:array[1..4]of longint=(0,-1,0,1);\n      b:array[1..4]of longint=(-1,0,1,0);\nvar l:array[1..100,1..2]of longint;\n    road:array[-2..15,-2..15] of longint;\n    i,j,o,m,n,m1,n1,m2,n2:longint;c:boolean;\nprocedure qiang(m,n:longint);{作为一步优化的过程}\nbegin\n for i:=0 to n+1 do begin road[1,i]:=0;road[m+1,i]:=0;end;\n for i:=0 to m+1 do begin road[i,1]:=0;road[i,n+1]:=0;end;\nend;\nfunction pd(x,y,z:longint):boolean;\nbegin\n pd:=true;\n if road[x+a[z],y+b[z]]=0 then pd:=false;\n if road[x+a[z],y+b[z]]=2then pd:=false;\nend;\nprocedure dg(p,q,sum:longint);\nvar i:longint;\nbegin\n if (p=m1)and(q=n1)then\n begin\n  if l[2,1]=0 then exit;\n  for i:=1 to sum-1 do begin{那么这里使用的chr的运用是每个人必须要写的，因为在洛谷上的标答的数字在大于10以上的数时，就会变成其他符号，所以需要转换一下}\n   write('(',chr(l[i,1]+48),',',chr(l[i,2]+48),')','->');c:=true;\n  end;\n  write('(',chr(m1+48),',',chr(n1+48),')');\n  writeln;\n  exit;\n end;\n for i:=1 to 4 do\n  if pd(p,q,i) then\n  begin\n   l[sum,1]:=p;\n   l[sum,2]:=q;\n   road[p,q]:=2;\n   dg(p+a[i],q+b[i],sum+1);\n   road[p,q]:=1;\n   l[sum,1]:=0;\n   l[sum,2]:=0;\n  end;\nend;\nbegin\n readln(m,n);\n qiang(m,n);\n for i:=1 to m do\n  for j:=1 to n do\n  begin\n   read(road[i,j]);end;\n readln(m,n);readln(m1,n1);\n dg(m,n,1);if c=false then begin write('-1'); end;\nend.",
+      "code_language": "Pascal",
+      "title": "题解 P1238 【走迷宫】",
+      "url": "/article/rnnal07l"
+    },
+    {
+      "solution_text": "该题解使用深度优先搜索(DFS)算法解决迷宫问题。算法思路：从起点(x1,y1)开始，按照上、左、右、下的方向顺序进行搜索，使用递归函数f(i,j,t)进行深度优先遍历，其中i,j表示当前位置，t表示步数。当到达终点(x2,y2)时，调用print函数输出完整路径。使用二维数组a记录迷宫可通行状态，xy数组记录路径坐标。如果找不到路径则输出-1。",
+      "author": "Kelin",
+      "code": "#include<bits/stdc++.h>\n#define r(i,a,b); for(i=a;i<=b;i++)\nusing namespace std;\nint a[20][20],xy[300][3],s,x2,y2;\nint print(int t)\n{\nint q\nr(q,1,t-1) printf(\"( %d , %d )->\",xy[q][1],xy[q][2]);\nprintf(\"( %d , %d )\\n\",x2,y2);\n}\nvoid f(int i,int j,int t)\n{\nif(!a[i][j]) return;\nif(i==x2&&j==y2) {s=1;print(t);return;}\nxy[t][1]=i;xy[t][2]=j;a[i][j]=0;\nf(i-1,j,t+1);\nf(i,j-1,t+1);\nf(i,j+1,t+1);\nf(i+1,j,t+1);\nxy[t][1]=0;xy[t][2]=0;a[i][j]=1;\n}\nint main()\n{\nint i,j,n,m,x1,y1;\ncin>>n>>m;\nfor(i=1;i<=n;i++)\nfor(j=1;j<=m;j++)\ncin>>a[i][j];\ncin>>x1>>y1>>x2>>y2;\nf(x1,y1,1);\nif(!s) printf(\"-1\");\nreturn 0;\n}",
+      "code_language": "C++",
+      "title": "题解 P1238 【走迷宫】",
+      "url": "/article/zaqahhnm"
+    },
+    {
+      "solution_text": "本题是经典的DSF\n首先需要仔细模拟确定行走方向，左下右上（下面很多方向都错了，不知道是不是测试数据修改过，本题也不需要chr把超过10的数据48处理）\n然后按方向搜索就行，达到目标的输出行走路径即可。",
+      "author": "xiaohua0574",
+      "code": "var n,m,i,j,sum:longint;\na:array[0..16,0..16] of longint; //迷宫地图信息存储\nx1,y1:longint;\ndy:array[1..4] of integer=(-1,0,1,0); //注意dy控制的是左右\ndx:array[1..4] of integer=(0,-1,0,1); //dx控制的上下\nx,y:array[1..225] of longint;\nprocedure search(t:longint);\nvar i:longint;\nbegin\nif (x[t-1]=x1) and (y[t-1]=y1) then //达到目标坐标，则输出路径\nbegin\nsum:=sum+1; //统计能走通的路径数量\nfor i:=1 to t-2 do write('(',x[i],',',y[i],')->');\nwriteln('(',x[t-1],',',y[t-1],')');\nend\nelse\nbegin\nfor i:=1 to 4 do //按左上右下四个方向搜索\nif a[x[t-1]+dx[i],y[t-1]+dy[i]]=1 then\nbegin\nx[t]:=x[t-1]+dx[i];\ny[t]:=y[t-1]+dy[i];\na[x[t],y[t]]:=0;\nsearch(t+1); //递归搜索\na[x[t],y[t]]:=1; //回溯\nend;\nend;\nend;\nbegin\nreadln(m,n);\nfor i:=1 to m do\nbegin\nfor j:=1 to n do read(a[i,j]);\nreadln;\nend;\nreadln(x[1],y[1]);\nreadln(x1,y1);\na[x[1],y[1]]:=0; //起点赋值0，防止再次被搜索经过\nsearch(2);\nif sum=0 then writeln('-1'); //没有路径，就输出-1\nend.",
+      "code_language": "Pascal",
+      "title": "题解 P1238 【走迷宫】",
+      "url": "/article/7em67u3j"
+    }
+  ]
+}

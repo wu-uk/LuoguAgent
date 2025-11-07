@@ -21,7 +21,7 @@ class AnalysisAgent:
     """
     
     def __init__(self):
-        self.llm = ZhipuAiClient(ZHIPU_API_KEY, ZHIPU_BASE_URL)
+        self.llm = ZhipuAiClient(api_key=DMX_API_KEY, base_url=DMX_BASE_URL)
         self.schema = ProblemAnalysis  
         self.analysis_cache_dir = ANALYSIS_CACHE_DIR
         os.makedirs(self.analysis_cache_dir, exist_ok=True)

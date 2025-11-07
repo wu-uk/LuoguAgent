@@ -1,0 +1,26 @@
+
+{
+  "detailed_solution": "本题要求在一个 m×n 的迷宫中找出所有从起点到终点的路径，且路径中不能有重复的点。这是一个典型的搜索问题，可以使用深度优先搜索（DFS）来解决。\n\n**算法步骤：**\n\n1.  **数据准备与输入：**\n    *   读取迷宫的行数 `m` 和列数 `n`。\n    *   读取 `m×n` 的迷宫地图，存储在一个二维数组（例如 `maze`）中，其中 `1` 代表可通行，`0` 代表障碍物。\n    *   读取起点坐标 `(start_x, start_y)` 和终点坐标 `(end_x, end_y)`。\n    *   为了方便处理边界（避免数组越界），可以在原始迷宫地图周围加一圈“围墙”（即设置 `0`）。但更直接的方法是在搜索时进行边界判断。\n    *   为了记录路径，需要一个数组（例如 `path`）来存储路径上每个点的坐标。由于迷宫路径最长为 m*n，这个数组的大小至少为 `m*n`。\n    *   为了防止节点被重复访问，需要一个与迷宫同样大小的二维数组（例如 `visited`）来标记某个点是否已经在当前路径上。也可以直接修改原迷宫数组，访问过某个点后将其从 `1` 修改为 `0`，回溯时再改回 `1`。本解法采用后者。
+
+2.  **定义方向：**\n    *   题目要求方向优先级为：左、上、右、下。\n    *   我们可以将这四个方向的行列偏移量分别存储在两个数组中。例如，`dx = {0, -1, 0, 1}` 和 `dy = {-1, 0, 1, 0}`（其中 `dx` 对应行变化，`dy` 对应列变化，索引 0, 1, 2, 3 分别代表左、上、右、下）。
+
+3.  **深度优先搜索（DFS）回溯：**\n    *   定义一个递归函数 `dfs(x, y, step)`，其中 `(x, y)` 是当前所在位置的坐标，`step` 是当前路径的长度（或路径数组中的下一个可用索引）。\n    *   **递归边界（找到终点）：** 如果当前位置 `(x, y)` 就是终点 `(end_x, end_y)`，说明找到了一条完整的路径。此时，调用一个输出函数来打印这条路径，然后 return。
+n        *   如果起点就是终点，这条路径只包含一个点。
+n    *   **递归过程：**\n        a. 将当前点 `(x, y)` 的坐标存入路径数组 `path[step-1]`（因为 `step` 已经是下一步的位置了）。
+n        c. 标记当前点 `(x, y)` 为已访问。最直接的方法是 `maze[x][y] = 0`。
+n        d. 按照左、上、右、下的优先级顺序遍历四个方向。对于每个方向 `i`（从 0 到 3）：\n           i. 计算下一个点的坐标 `next_x = x + dx[i]` 和 `next_y = y + dy[i]`。\n          ii. **剪枝：** 检查下一个点 `(next_x, next_y)` 是否可以走。条件是：\n              - 在迷宫边界内：`1 <= next_x <= m` 且 `1 <= next_y <= n`。\n              - 是可通行的点：`maze[next_x][next_y] == 1`。\n              如果满足条件，则递归调用 `dfs(next_x, next_y, step + 1)`。\n        e. **回溯：** 当四个方向都探索完毕，或者从某个方向递归返回后，需要撤销对当前点的访问标记，以便其他路径可以经过该点。即 `maze[x][y] = 1`。
+
+4.  **结果输出：**\n    *   在主函数中，从起点 `(start_x, start_y)` 开始调用 `dfs` 函数，即 `dfs(start_x, start_y, 1)`。\n    *   设置一个全局的布尔标志变量（例如 `has_solution`），初始为 `false`。每当找到一条路径并成功打印时，将其设为 `true`。
+n    *   整个搜索过程结束后，如果 `has_solution` 仍为 `false`，表示没有任何可行路径，则输出 `-1`。
+
+5.  **格式化输出路径：**\n    *   当找到一条从起点到终点的路径时，路径上的所有点坐标都已按顺序存入了 `path` 数组（从 `path[0]` 到 `path[step-1]`，`path[step-1]` 即终点）。
+n    *   按照格式 `(x,y)->(x,y)->...` 进行打印。遍历 `path` 数组，对于每个点 `p = path[i]`，打印 `(p.x,p.y)`，如果 `i` 不是最后一个点，再打印 `->`。",
+  "sample_code": "#include <iostream>\n#include <vector>\n\n// 定义全局变量，方便在递归函数中使用\nint rows, cols;\nint maze[20][20]; // 迷宫地图，数组大小设为20x20以容纳四周的边界\nint start_x, start_y, end_x, end_y;\n\n// 路径记录，最多有 rows*cols 个点\nstd::vector<std::pair<int, int>> path;\n\n// 标记是否至少找到一条路径\nbool found_path = false;\n\n// 方向向量，题目要求：左上右下\n// dx: 行变化, dy: 列变化\nconst int direction_count = 4;\nint dx[direction_count] = {0, -1, 0, 1};\nint dy[direction_count] = {-1, 0, 1, 0};\n\n// 打印当前找到的路径\nvoid print_path() {\n    found_path = true; // 找到路径了\n    for (int i = 0; i < path.size(); ++i) {\n        std::cout << '(' << path[i].first << ',' << path[i].second << ')';\n        if (i < path.size() - 1) {\n            std::cout << \"->\";\n        }\n    }\n    std::cout << std::endl;\n}\n\n// 深度优先搜索函数\n// x, y: 当前坐标\nvoid dfs(int x, int y) {\n    // 1. 将当前点加入路径\n    path.push_back({x, y});\n    // 2. 标记当前点为已访问（通过修改迷宫值）\n    maze[x][y] = 0;\n\n    // 3. 检查是否到达终点\n    if (x == end_x && y == end_y) {\n        print_path(); // 找到一条路径，打印它\n        // 回溯，以便查找其他可能路径\n        maze[x][y] = 1;\n        path.pop_back();\n        return;\n    }\n\n    // 4. 按照左上右下的顺序探索四个方向\n    for (int i = 0; i < direction_count; ++i) {\n        int next_x = x + dx[i];\n        int next_y = y + dy[i];\n\n        // 剪枝：\n        // a. 是否越界\n        // b. 是否是障碍物或已访问\n        if (next_x >= 1 && next_x <= rows && next_y >= 1 && next_y <= cols && maze[next_x][next_y] == 1) {\n            dfs(next_x, next_y);\n        }\n    }\n\n    // 5. 回溯：恢复当前点的状态，以便其他路径可以使用\n    maze[x][y] = 1;\n    path.pop_back();\n}\n\nint main() {\n    // 加速 C++ 输入输出\n    std::ios_base::sync_with_stdio(false);\n    std::cin.tie(NULL);\n\n    // 读取迷宫大小\n    std::cin >> rows >> cols;\n\n    // 读取迷宫地图\n    for (int i = 1; i <= rows; ++i) {\n        for (int j = 1; j <= cols; ++j) {\n            std::cin >> maze[i][j];\n        }\n    }\n\n    // 读取起点和终点\n    std::cin >> start_x >> start_y;\n    std::cin >> end_x >> end_y;\n\n    // 从起点开始搜索\n    dfs(start_x, start_y);\n\n    // 如果从头到尾没有找到任何路径，则输出 -1\n    if (!found_path) {\n        std::cout << -1 << std::endl;\n    }\n\n    return 0;\n}",
+  "keywords": [
+    "深度优先搜索",
+    "DFS",
+    "回溯法",
+    "递归",
+    "路径搜索"
+  ]
+}

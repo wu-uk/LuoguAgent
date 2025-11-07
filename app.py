@@ -1,0 +1,171 @@
+import streamlit as st
+import asyncio, sys
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+import traceback
+
+# --- 关键导入 ---
+# 1. 导入你的 Agent
+from analysis_agent import AnalysisAgent
+
+# 2. 导入爬虫依赖（因为爬虫是第一步）
+from crawler_agent import LuoguCrawlerAgent
+from crawl4ai import AsyncWebCrawler, BrowserConfig
+from constant import *
+# (如果你的 ZHIPU 密钥在 analysis_agent 里是硬编码的，这里就不需要导入)
+
+# -----------------------------------------------------------------
+# 辅助函数：从解析后的字典构建 Markdown
+# -----------------------------------------------------------------
+def build_markdown_from_data(problem_id: str, data: dict) -> str:
+    """
+    在前端复刻 Agent 内部的 Markdown 生成逻辑。
+    """
+    try:
+        solution_text = data.get('detailed_solution', 'LLM 未提供详细题解。')
+        sample_code = data.get('sample_code', 'LLM 未提供示例代码。')
+        keywords = data.get('keywords', [])
+        code_lang = "cpp" # 来自你的 schema
+
+        md_content = f"# {problem_id} 详细题解\n\n"
+        md_content += f"{solution_text}\n\n"
+        md_content += f"# 参考代码 ({code_lang})\n\n"
+        md_content += f"```{code_lang}\n{sample_code}\n```\n\n"
+        md_content += "# 核心知识点\n\n"
+        if keywords:
+            for keyword in keywords:
+                md_content += f"* {keyword}\n"
+        else:
+            md_content += "无\n"
+        return md_content
+    except Exception as e:
+        return f"生成 Markdown 时出错: {e}\n\n原始数据: \n```json\n{data}\n```"
+
+
+# -----------------------------------------------------------------
+# Streamlit 界面
+# -----------------------------------------------------------------
+
+st.title("🦜🔗 Luogu Agent")
+
+# # 使用 @st.cache_resource 来缓存 Agent 实例，避免每次重跑都初始化
+# @st.cache_resource
+# def get_analysis_agent():
+#     print("--- [Streamlit] 正在初始化 AnalysisAgent... ---")
+#     # 确保 AnalysisAgent 的 __init__ 不需要额外参数
+#     # 或者如果需要，从你的 constant.py 导入
+#     return AnalysisAgent()
+
+try:
+    analysis_agent = AnalysisAgent()
+except Exception as e:
+    st.error(f"初始化 AnalysisAgent 失败: {e}\n\n请检查 `constant.py` 和 API 密钥。")
+    st.stop()
+
+# --- 界面 ---
+problemid = st.text_input("输入洛谷题目 ID (例如: P1117)", "P1117")
+
+if st.button("🚀 开始分析"):
+    if not problemid:
+        st.warning("请输入题目 ID")
+        st.stop()
+
+    # [!] 核心：这是我们的“舞台”，所有内容都会在这里更新
+    placeholder = st.empty()
+
+    raw_crawler_data = {}
+    
+    # --- 1. 爬虫 (处理异步) ---
+    try:
+        with st.status(f"🔍 正在爬取 {problemid} 题目和题解...", expanded=True) as status:
+            brouser_config = BrowserConfig(headless=True, proxy=None)
+            
+            async def crawl_main():
+                async with AsyncWebCrawler(config=brouser_config) as crawler:
+                    agent = LuoguCrawlerAgent(crawler, cache_dir=CACHE_DIR)
+                    st.write(f"正在抓取 {problemid}...")
+                    data = await agent.run(problemid, max_solutions=3)
+                    st.write("✅ 抓取完成")
+                    return data
+            
+            # 在同步的 Streamlit 回调中运行异步爬虫
+            raw_crawler_data = asyncio.run(crawl_main()) 
+            status.update(label="爬取成功!", state="complete")
+            
+    except Exception as e:
+        placeholder.error(f"爬虫阶段失败: {e}")
+        traceback.print_exc() # 打印到终端
+        st.stop()
+        
+    # --- 2. 检查爬虫数据 ---
+    problem_data = raw_crawler_data.get("problem", {})
+    solutions_data = raw_crawler_data.get("solutions", [])
+    if "error" in problem_data or not problem_data:
+        placeholder.error(f"爬虫未获取到有效数据: {problem_data.get('error', '未知错误')}")
+        st.stop()
+
+    # --- 3. 构建提示 & 调用 LLM (流式) ---
+    placeholder.info("🧠 正在调用 LLM...")
+    
+    try:
+        # [!] 调用 Agent 的“零件”
+        system_prompt, user_prompt = analysis_agent._build_prompts(problem_data, solutions_data)
+        
+        # [!] 直接访问 agent 的 llm 属性来获取流
+        stream = analysis_agent.llm.chat.completions.create(
+            model="glm-4.6", 
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            thinking={"type": "disabled"},
+            stream=True
+        )
+
+        full_content = ""
+        stream_display = "" # 这是流式展示给用户的
+        
+        # [!] 核心：实时更新占位符，显示原始输出
+        for chunk in stream:
+            if not chunk.choices: continue
+            delta = chunk.choices[0].delta
+            if hasattr(delta, 'content') and delta.content:
+                full_content += delta.content
+                stream_display += delta.content
+                # 用 .code() 来显示原始的、正在生成的 JSON 字符串
+                placeholder.code(stream_display + "▌", language="json")
+        
+        # 流式结束，显示完整 JSON
+        placeholder.code(full_content, language="json")
+        st.success("✅ LLM 流式响应接收完毕")
+
+    except Exception as e:
+        placeholder.error(f"LLM 调用失败: {e}")
+        traceback.print_exc()
+        st.stop()
+
+    # --- 4. 解析 & 覆盖 ---
+    with st.spinner("正在解析结果并生成报告..."):
+        # [!] 复用 Agent 的解析和提取“零件”
+        extracted_str = analysis_agent._extract_json_string(full_content)
+        parsed_data = analysis_agent._parse_to_dict(extracted_str)
+        
+        if parsed_data:
+            # [!] 用我们前端的辅助函数生成 Markdown
+            final_md = build_markdown_from_data(problemid, parsed_data)
+            
+            # [!] 关键：用 Markdown 覆盖掉 placeholder 里的 code
+            placeholder.markdown(final_md)
+            
+            # (可选) 既然 Agent 有保存功能，我们也帮它调用一下
+            try:
+                analysis_agent._save_json_result(problemid, parsed_data)
+                analysis_agent._save_markdown_result(problemid, parsed_data)
+            except Exception as e:
+                st.warning(f"保存文件时出错 (但不影响显示): {e}")
+        
+        else:
+            # 解析失败
+            st.error("❌ 无法解析 LLM 的 JSON 响应。")
+            analysis_agent._save_error(problemid, full_content)
+            # 此时 placeholder 里仍然显示的是完整的原始 JSON，方便调试
