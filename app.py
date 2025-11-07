@@ -117,7 +117,7 @@ if api_key_input and base_url_input:
         st.warning("请检查侧边栏的 API Key 和 Base URL 是否正确。")
         st.stop()
 else:
-    st.info("👈 请在左侧边栏输入 Zhipu API Key 和 Base URL 来启动应用。")
+    st.info("👈 请在左侧边栏输入 API Key 和 Base URL 来启动应用。")
     st.stop() # 如果没提供密钥，就停在这里，不显示后续界面
 
 # --- 界面 ---
