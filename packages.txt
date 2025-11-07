@@ -1,7 +1,7 @@
 libnss3
 libnspr4
 libdbus-1-3
-libatk-1.0-0
+libatk1.0-0
 libatk-bridge2.0-0
 libcups2
 libdrm2
@@ -15,5 +15,5 @@ libgbm1
 libxkbcommon0
 libpango-1.0-0
 libcairo2
-libgdk-pixbuf-2.0-0
+libgdk-pixbuf2.0-0
 libgtk-3-0
