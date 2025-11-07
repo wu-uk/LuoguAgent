@@ -47,6 +47,7 @@ class AnalysisAgent:
                 {"role": "user", "content": user_prompt}
             ],
             thinking={"type": "disabled"},
+            response_format={"type": "json_object"},    
             stream=True
         )
 
