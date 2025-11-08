@@ -22,8 +22,8 @@ def create_solution_strategy(api_key: str, base_url: str):
     solution_strategy =  LLMExtractionStrategy(
         llm_config=LLMConfig(
             provider="deepseek/deepseek-chat",
-            api_token=DMX_API_KEY,
-            base_url="https://www.dmxapi.cn/v1"
+            api_token=api_key,
+            base_url=base_url
         ),
         schema=SolutionDetails.model_json_schema(),
         extraction_type="schema",

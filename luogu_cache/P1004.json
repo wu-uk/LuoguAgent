@@ -1,0 +1,42 @@
+{
+  "problem": {
+    "title": "P1004 [NOIP 2000 提高组] 方格取数",
+    "background": "NOIP 2000 提高组 T4",
+    "description": "设有 N×N 的方格图 (N≤9)，我们将其中的某些方格中填入正整数，而其他的方格中则放入数字 0。如下图所示（见样例）: 某人从图的左上角的 A 点出发，可以向下行走，也可以向右走，直到到达右下角的 B 点。在走过的路上，他可以取走方格中的数（取走后的方格中将变为数字 0）。 此人从 A 点到 B 点共走两次，试找出 2 条这样的路径，使得取得的数之和为最大。",
+    "input_format": "输入的第一行为一个整数 N（表示 N×N 的方格图），接下来的每行有三个整数，前两个表示位置，第三个数为该位置上所放的数。一行单独的 0 表示输入结束。",
+    "output_format": "只需输出一个整数，表示 2 条路径上取得的最大的和。",
+    "examples": [
+      {
+        "input": "8\n2 3 13\n2 6 6\n3 5 7\n4 4 14\n5 2 21\n5 6 4\n6 3 15\n7 2 14\n0 0 0",
+        "output": "67"
+      }
+    ],
+    "notes": "数据范围：1≤N≤9。"
+  },
+  "solutions": [
+    {
+      "solution_text": "我们可以发现，这题是用 DP 做的，如果只要走一次，那么十分简单，但要走两次，动态规划的特性就十分显著了，没错，我们两次可以一起求。\n\n首先我们遍历第一次的横纵坐标和第二次的横纵坐标，在循环中，我们可以令 DP 数组每一项的值为 max(dpi−1,j,k−1,l,dpi−1,j,k,l−1,dpi,j−1,k,l−1,dpi,j−1,k−1,l)+gi,j+gk,l，其中 g 数组为输入的方格图。\n\n为什么这么做？因为我们可以想到，两个点是由两个路径转过来的，每个点可以是左边或上边的状态转移过来，那两个点就要求出四种情况的最大值，再加上方格图上两个点的值。这里我们发现会有一种两个点的位置相同的情况，所以这种情况我们只能加一次。",
+      "author": "GLr137_2025BL",
+      "code": "# include <iostream>\nusing namespace std;\nint n, x, y, z, sz[10][10], dp[10][10][10][10];\nint main (){\n    cin >> n;\n    for (int i = 1; ; i++){\n        cin >> x >> y >> z;\n        if (x == 0 && y == 0 && z == 0){\n            break;\n        }else{\n            sz[x][y] = z;\n        }\n    }\n    for (int i = 1; i <= n; i++){\n        for (int j = 1; j <= n; j++){\n            for (int k = 1; k <= n; k++){\n                for (int l = 1; l <= n; l++){\n                    dp[i][j][k][l] = max(max(dp[i - 1][j][k - 1][l], dp[i - 1][j][k][l - 1]), max(dp[i][j - 1][k][l - 1], dp[i][j - 1][k - 1][l])) + sz[i][j];\n                    if (i != k && j != l){\n                        dp[i][j][k][l] += sz[k][l];\n                    }\n                }\n            }\n        }\n    }\n    cout << dp[n][n][n][n];\n    return 0;\n}",
+      "code_language": "C++",
+      "title": "题解：P1004 [NOIP2000 提高组] 方格取数",
+      "url": "/article/xzhuquxo"
+    },
+    {
+      "solution_text": "经典动态规划问题。\n先考虑只取一遍的方格取数，设 f_{i,j} 表示以 (i,j) 为结尾的路径的最大和，a_{i,j} 表示格子 (i,j) 的数字。转移是 f_{i,j}=max(f_{i-1,j},f_{i,j-1})+a_{i,j}。\n那么取两遍就多设两维好了，即设 f_{i,j,k,l} 表示第一条路径以 (i,j) 结尾，第二条路径以 (k,l) 结尾的两条路径的最大和，转移的话就相当于两条路径分别转移，即 f_{i,j,k,l}=max(f_{i-1,j,k-1,l},f_{i,j-1,k-1,l},f_{i-1,j,k,l-1},f_{i,j-1,k,l-1})+a_{i,j}+a_{k,l}。\n题目要求取走后的方格清零，所以要特判两条路径结尾在一个格子的情况，即当 i=k 且 j=l 时，会加两遍当前格子，按照题目要求只能加一遍 a_{i,j}。\n答案是 f_{n,n,n,n}。",
+      "author": "qhr2023",
+      "code": "#include<bits/stdc++.h>\nusing namespace std;\nint n, x, y, z, a[10][10], f[10][10][10][10];\nint main(){\n    cin >> n;\n    while (cin >> x >> y >> z) a[x][y]=z;\n    for(int i=1; i<=n; i++)\n        for(int j=1; j<=n; j++)\n            for(int k=1; k<=n; k++)\n                for(int l=1; l<=n; l++)\n                    f[i][j][k][l]=max({f[i-1][j][k-1][l], f[i][j-1][k-1][l], f[i-1][j][k][l-1], f[i][j-1][k][l-1]})+a[i][j]+(i!=k||j!=l)*a[k][l];\n    cout << f[n][n][n][n];\n    return 0;\n}",
+      "code_language": "C++",
+      "title": "题解：P1004 [NOIP2000 提高组] 方格取数",
+      "url": "/article/nfy2nfnz"
+    },
+    {
+      "solution_text": "容易发现本题要求最长带权路径，遂想到 dp。\n\n这类问题的状态很好设计，用 f_{i,j} 表示走到格子 a_{i,j} 时的最长带权路径。\n\n由于本题需要求两次，所以增加第二次的两维，合并为 f_{i,j,k,l}，代表第一次走到格子 a_{i,j}，第二次走到格子 a_{k,l} 的答案。\n\n状态设计已经解决，可以思考转移。\n\n转移方程较为简单：\nf_{i,j,k,l} = max(f_{i-1,j,k-1,l}, f_{i-1,j,k,l-1}, f_{i,j-1,k-1,l}, f_{i,j-1,k,l-1}) + a_{i,j} + a_{k,l}\n\n这个公式有点头晕，略微口语来讲就是从两次的上方或左方继承，加上格子的权值，如果还是不懂先去学前置知识。\n\n好的，现在让我们来写代码。\n\n于是我们得到了 0 分的好成绩。\n\n原因其实很简单，重新读题。\n\n某人从图的左上角的 A 点出发，可以向下行走，也可以向右走，直到到达右下角的 B 点。在走过的路上，他可以取走方格中的数（取走后的方格中将变为数字 0）。\n\n容易发现我们计算时两次行走时重复点算了两次，加入相同判断即可。",
+      "author": "zhangzirui66",
+      "code": "#include<bits/stdc++.h>\nusing namespace std;\nint n, a[15][15], f[15][15][15][15];\nint main(){\n    cin >> n;\n    while(1){\n        int x, y, v;\n        cin >> x;\n        if(x == 0) break;\n        cin >> y >> v;\n        a[x][y] = v;\n    }\n    for(int i = 1; i <= n; i ++)\n        for(int j = 1; j <= n; j ++)\n            for(int k = 1; k <= n; k ++)\n                for(int l = 1; l <= n; l ++){\n                    f[i][j][k][l] = max({f[i - 1][j][k - 1][l], f[i - 1][j][k][l - 1], f[i][j - 1][k - 1][l], f[i][j - 1][k][l - 1]}) + a[i][j] + a[k][l];\n                    if(i == k && j == l) f[i][j][k][l] -= a[i][j];\n                }\n    cout << f[n][n][n][n];\n    return 0;\n}",
+      "code_language": "C++",
+      "title": "题解：P1004 [NOIP2000 提高组] 方格取数",
+      "url": "/article/zwelcxhq"
+    }
+  ]
+}

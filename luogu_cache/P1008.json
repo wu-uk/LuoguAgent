@@ -1,0 +1,42 @@
+{
+  "problem": {
+    "title": "P1008 [NOIP 1998 普及组] 三连击",
+    "background": "本题为提交答案题，您可以写程序或手算在本机上算出答案后，直接提交答案文本，也可提交答案生成程序。",
+    "description": "将 1,2,…,9 共 9 个数分成 3 组，分别组成 3 个三位数，且使这 3 个三位数构成 1:2:3 的比例，试求出所有满足条件的 3 个三位数。",
+    "input_format": "无",
+    "output_format": "若干行，每行 3 个数字。按照每行第 1 个数字升序排列。",
+    "examples": [
+      {
+        "input": "无",
+        "output": "192 384 576\n...\n（剩余部分不予展示）"
+      }
+    ],
+    "notes": "NOIP1998 普及组 第一题"
+  },
+  "solutions": [
+    {
+      "solution_text": "这个题没有什么，穷举吧。设abc:def:ghi=1:2:3 但是穷举也有多种方法。例如生成123456789的每个排列再求，显然要枚举 9!=362880次，不爽。其实只需枚举abc就可以了，乘以2和3就得到def和ghi, 最后判断有没有相等的。 显然c<>5, a<=3,枚举次数仅为3*8*7=168次。不用我再说了吧。 为了方便，连c<>5也不要了。用字符串更方便。 呵呵，多枚举了几次，但是程序短呀！",
+      "author": "野菜汤",
+      "code": "var i:integer;\ns,ss:string;\nc:char;\nbegin\nfor i:=123 to 327 do {最小数的可能范围}\nbegin\nstr(i,ss);\nstr(i*2,s);\nss:=ss+s;\nstr(i*3,s);\nss:=ss+s;\nfor c:=\\'1\\' to \\'9\\' do\nif pos(c,ss)=0 then break;\nif pos(c,ss)=0 then continue;\nwriteln(i,\\' \\',i*2,\\' \\',i*3);\nend;\nend.",
+      "code_language": "Pascal",
+      "title": "题解 P1008 【三连击】",
+      "url": "/article/r9x42i9k"
+    },
+    {
+      "solution_text": "我的方法，最小的那个三位数从123试到329（因为329*3=987），flag数组做9个数字的标志（判断都用到没），如果有数字重复的话，flag数组9个数字之和就会小于9，否则打印三个三位数",
+      "author": "WHU2017301500335",
+      "code": "#include <stdio.h>\n#include <string.h>\n\nint main()\n{\n    int flag[10],s[3],i,j,c;\n    for(s[0]=123;s[0]<=329;s[0]++)\n    {\n        memset(flag,0,10*sizeof(int));\n        s[1]=s[0]*2;\n        s[2]=s[0]*3;\n        for(i=0;i<3;i++)\n        {\n            flag[s[i]/100]=1;\n            flag[(s[i]/10)%10]=1;\n            flag[s[i]%10]=1;\n            c=0;\n            for(j=1;j<10;j++)\n                c=c+flag[j];\n        }\n        if(c==9)\n            printf(\"%d %d %d\\n\",s[0],s[1],s[2]);\n    }\n    return 0;\n}",
+      "code_language": "C",
+      "title": "题解 P1008 【三连击】",
+      "url": "/article/jqrvrnkj"
+    },
+    {
+      "solution_text": "该题解使用DFS深度优先搜索算法解决三连击问题。思路是通过DFS生成所有可能的9位数排列组合，当生成到第3位时记录第一个数，生成到第6位时记录第二个数，生成到第9位时检查三个数是否满足条件：第三个数是第一个数的3倍，第二个数是第一个数的2倍。",
+      "author": "silveryelf",
+      "code": "#include<iostream>\n#include<cstring>\nusing namespace std;\nbool used[10]={false};\nint first,second;\nvoid dfs(int k, int num)\n{\n    if(k==3)\n    {\n        first=num;\n        num=0;\n    }\n    else if(k==6)\n    {\n        second = num;\n        num=0;\n    }\n    else if (k == 9)\n    {\n        if(num%3==0 and num/3==first and first*2==second)\n            cout<<first<<' '<<second<<' '<<num<<endl;\n        return;\n    }\n    for(int i=1;i<=9;i++)\n    {\n        if(not used[i])\n        {\n            used[i]=true;\n            dfs(k+1, num*10+i);\n            used[i]=false;\n        }\n    }\n}\nint main()\n{\n    memset(used, 0, sizeof(used));\n    for(int i=1;i<=9;i++)\n    {\n        used[i]=true;\n        dfs(1, i);\n        used[i]=false;\n    }\n    return 0;\n}",
+      "code_language": "C++",
+      "title": "题解 P1008 【三连击】",
+      "url": "/article/fvdjku4x"
+    }
+  ]
+}
