@@ -156,6 +156,10 @@ if st.button("🚀 开始分析"):
     if "error" in problem_data or not problem_data:
         placeholder.error(f"爬虫未获取到有效数据: {problem_data.get('error', '未知错误')}")
         st.stop()
+    
+    print(problem_data)
+
+    print(solutions_data)
 
     # --- 3. 构建提示 & 调用 LLM (流式) ---
     placeholder.info("🧠 正在调用 LLM...")

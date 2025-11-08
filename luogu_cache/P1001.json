@@ -1,0 +1,26 @@
+{
+  "problem": {
+    "title": "P1001 A+B Problem",
+    "background": "不熟悉算法竞赛的选手请看这里：算法竞赛中要求的输出格式中，不能有多余的内容，这也包括了“请输入整数 a 和 b” 这一类的提示用户输入信息的内容。若包含了这些内容，将会被认为是 Wrong Answer，即洛谷上的 WA。在对比代码输出和标准输出时，系统将忽略每一行结尾的空格，以及最后一行之后多余的换行符。若因此类问题出现本机似乎输出了正确的结果，但是实际提交结果为错误的现象，请勿认为是洛谷评测机出了问题，而是你的代码中可能存在多余的输出信息。用户可以参考在题目末尾提供的代码。此外，请善用进入 IDE 模式，以避免不同平台的评测产生差异。最后，请不要在对应的题目讨论区中发布自己的题解，请发布到题解区域中，否则将处以删除或禁言的处罚。若发现无法提交题解则表明本题题解数量过多，仍不应发布讨论。若您的做法确实与其他所有题解均不一样，请联系管理员添加题解。",
+    "description": "输入两个整数 a,b，输出它们的和（∣a∣,∣b∣≤109）。注意 1. Pascal 使用 integer 会爆掉哦！ 2. 有负数哦！ 3. C/C++ 的 main 函数必须是 int 类型。程序正常结束时的返回值必须是 0。这不仅对洛谷其他题目有效，而且也是 NOIP/CSP/NOI 比赛的要求！好吧，同志们，我们就从这一题开始，向着大牛的路进发。> 任何一个伟大的思想，都有一个微不足道的开始。",
+    "input_format": "两个以空格分开的整数。",
+    "output_format": "一个整数。",
+    "examples": [
+      {
+        "input": "20 30",
+        "output": "50"
+      }
+    ],
+    "notes": "广告 洛谷出品的算法教材，帮助您更简单地学习基础算法。【官方网店绝赞热卖中！】>>> 本题各种语言的程序范例：C、C++、Pascal、Python 3、Java、JavaScript (Node.js)、Ruby、PHP、Rust、Go、C# Mono、Kotlin、Haskell、Lua、OCaml、Julia、Scala、Perl"
+  },
+  "solutions": [
+    {
+      "solution_text": "看见楼上楼下各路神仙对轰，小蒟蒻认为自己还是太弱了，不会什么太高深的算法，所以写个二维前缀和吧（主要是会的都被写完了）\n\n我们来观察下面这张图：\n\n![并不好看的图](https://cdn.luogu.com.cn/upload/image_hosting/bpbsid4s.png?x-oss-process=image/resize,m_lfit,h_340,w_450)\n\n通过输入数据构造如上的矩形，我们需要的答案就是红框部分矩形的值的和。这就是二维前缀和的模板题了。",
+      "author": "aaa1145141919810",
+      "code": "#include<bits/stdc++.h>\nusing namespace std;\nusing LL = long long;\nconst int N = 5;\nLL a, b, sum[N][N], t[N][N];\ninline LL read() {\n    LL w = 0, t = 1;\n    char ch = getchar();\n    while(ch < '0' || ch > '9'){if(ch == '-')t = -1;ch = getchar();}\n    while('0' <= ch && ch <= '9')w = w*10+(ch&15),ch = getchar();\n    return w*t;\n}\nint main() {\n    a = read(), b = read();\n    for(int i = 1; i <= 2; i++)\n        for(int j = 1; j <= 2; j++) {\n            if(i == 1)t[i][j] = a;\n            else t[i][j] = b;\n            sum[i][j] = sum[i-1][j]+sum[i][j-1] - sum[i-1][j-1] + t[i][j];\n        }\n    printf(\"%lld\\n\", sum[2][2]-sum[2][1]);\n    return 0;\n}",
+      "code_language": "C++",
+      "title": "题解：P1001 A+B Problem",
+      "url": "/article/buctrdyu"
+    }
+  ]
+}

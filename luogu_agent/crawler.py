@@ -148,7 +148,7 @@ class LuoguCrawlerAgent:
         print(f"[CrawlerAgent.Problem] 正在爬取题目: {url}")
         
         config = CrawlerRunConfig(
-            cache_mode=CacheMode.ENABLED, # 题目页可以缓存
+            cache_mode=CacheMode.BYPASS, # 题目页可以缓存
             extraction_strategy=self.problem_strategy,
             delay_before_return_html=1
         )
@@ -254,7 +254,7 @@ class LuoguCrawlerAgent:
             return {"error": f"Pydantic 验证失败: {e}", "raw": result.extracted_content}
 
 async def main():
-    TEST_PROBLEM_ID = "P1238"
+    TEST_PROBLEM_ID = "P1001"
     
     brouser_config = BrowserConfig(headless=True, proxy=None)
     
